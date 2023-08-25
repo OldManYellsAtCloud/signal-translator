@@ -5,14 +5,31 @@
 
 pid_t getKeyboardPid(){
     char line[10];
-    FILE *cmd = popen("/bin/pidof wvkbd-mobintl", "r");
-    fgets(line, 10, cmd);
-    pid_t keyboard_pid = strtoul(line, NULL, 10);
-    Logger::getLogger().log(LOG_INFO, "Keyboard pid: " + keyboard_pid);
-    if (errno != 0) {
-        Logger::getLogger().log(LOG_ERR, "Could not find the pid of keyboard! Error: " + errno);
+    int timeout = 10;
+    char *cmd = "/bin/pidof wvkbd-mobintl";
+    pid_t keyboard_pid = 0;
+
+    int i;
+    for (i = 0; i < timeout; ++i){
+        FILE *cmd_output = popen(cmd, "r");
+        if (!cmd_output){
+            Logger::getLogger().log(LOG_ERR, "Could not start pidof command: " + errno);
+        }
+        fgets(line, 10, cmd_output);
+        keyboard_pid = strtoul(line, NULL, 10);
+        pclose(cmd_output);
+
+        if (keyboard_pid)
+            break;
+
+        sleep(1);
     }
-    pclose(cmd);
+
+    if (!keyboard_pid){
+        Logger::getLogger().log(LOG_ERR, "Could not find the pid of keyboard after 10 seconds! Error: " + errno);
+        exit(1);
+    }
+
     return keyboard_pid;
 }
 
