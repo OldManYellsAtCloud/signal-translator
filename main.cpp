@@ -8,6 +8,7 @@ pid_t getKeyboardPid(){
     FILE *cmd = popen("pidof wvkbd-mobintl", "r");
     fgets(line, 10, cmd);
     pid_t keyboard_pid = strtoul(line, NULL, 10);
+    Logger::getLogger().log(LOG_INFO, "Keyboard pid: " + keyboard_pid);
     if (errno != 0) {
         Logger::getLogger().log(LOG_ERR, "Could not find the pid of keyboard! Error: " + errno);
     }
