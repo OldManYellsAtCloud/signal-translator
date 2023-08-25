@@ -5,7 +5,7 @@
 
 pid_t getKeyboardPid(){
     char line[10];
-    FILE *cmd = popen("pidof wvkbd-mobintl", "r");
+    FILE *cmd = popen("/bin/pidof wvkbd-mobintl", "r");
     fgets(line, 10, cmd);
     pid_t keyboard_pid = strtoul(line, NULL, 10);
     Logger::getLogger().log(LOG_INFO, "Keyboard pid: " + keyboard_pid);
