@@ -1,5 +1,5 @@
 #include "dbusListener.h"
-#include "logger.h"
+#include "loglibrary.h"
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -13,7 +13,7 @@ pid_t getKeyboardPid(){
     for (i = 0; i < timeout; ++i){
         FILE *cmd_output = popen(cmd, "r");
         if (!cmd_output){
-            Logger::getLogger().log(LOG_ERR, "Could not start pidof command: " + errno);
+            ERROR("Could not start pidof command: {}", errno);
         }
         fgets(line, 10, cmd_output);
         keyboard_pid = strtoul(line, NULL, 10);
@@ -26,7 +26,7 @@ pid_t getKeyboardPid(){
     }
 
     if (!keyboard_pid){
-        Logger::getLogger().log(LOG_ERR, "Could not find the pid of keyboard after 10 seconds! Error: " + errno);
+        ERROR("Could not fid the pid of keyboard after 10 seconds! Error: {}", errno);
         exit(1);
     }
 

@@ -1,14 +1,16 @@
 #include "dbusListener.h"
-#include "logger.h"
+#include "loglibrary.h"
 #include <signal.h>
+
+#define KEYBOARD_DIRECTION = "RIGHT_TO_LEFT"
 
 void dbusListener::onTouchEvent(const std::string &direction)
 {
-    LOG(LOG_DEBUG, "Direction arrived: " + direction);
-    if (direction == "LEFT_TO_RIGHT") {
+    DEBUG("Direction arrived: {}", direction);
+    if (direction == KEYBOARD_DIRECTION) {
         int res = kill(keyboard_pid_, KEYBOARD_TOGGLE_SIGNAL);
         if (res) {
-            Logger::getLogger().log(LOG_ERR, "Could not send keyboard toggle signal: " + errno);
+            ERROR("Could not send keyboard toggle signal: {}", errno);
         }
     }
 }
