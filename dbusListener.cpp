@@ -2,7 +2,7 @@
 #include "loglibrary.h"
 #include <signal.h>
 
-#define KEYBOARD_DIRECTION = "RIGHT_TO_LEFT"
+#define KEYBOARD_DIRECTION "RIGHT_TO_LEFT"
 
 void dbusListener::onTouchEvent(const std::string &direction)
 {
