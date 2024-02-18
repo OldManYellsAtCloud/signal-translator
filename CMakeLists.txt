@@ -6,19 +6,23 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(sdbus-c++)
+find_package(LogLibrary)
+find_package(SettingsLib)
 
 set(PROJECT_SOURCES
-        main.cpp
-        dbusListener.cpp
-        dbusListener.h
+        src/main.cpp
+        src/commandexecutor.cpp
+        include/commandexecutor.h
 )
 
 add_executable(signal-translator
     ${PROJECT_SOURCES}
 )
 
+target_include_directories(signal-translator PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
 install(TARGETS signal-translator
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-target_link_libraries(signal-translator PRIVATE SDBusCpp::sdbus-c++ LogLibrary)
+target_link_libraries(signal-translator PRIVATE SDBusCpp::sdbus-c++ LogLibrary SettingsLib)
