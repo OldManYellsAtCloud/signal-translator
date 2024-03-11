@@ -4,23 +4,21 @@
 
 #include <thread>
 #include <chrono>
+#include <vector>
 
 #include "commandexecutor.h"
 
-#define BUTTON_DESTINATION "org.gspine.button"
-#define BUTTON_OBJECTPATH  "/org/gspine/button"
-
-#define GESTURE_DESTINATION "org.gspine.gesture"
-#define GESTURE_OBJECTPATH  "/org/gspine/gesture"
-
-#define INHIBIT_DESTINATION "org.gspine.lowpower"
-#define INHIBIT_OBJECTPATH  "/org/gspine/lowpower"
-
+size_t findProxyInVector(const std::vector<std::unique_ptr<sdbus::IProxy>>& input, const std::string& objectPath){
+    for (size_t i = 0; i < input.size(); ++i){
+        if (input.at(i)->getObjectPath() == objectPath)
+            return i;
+    }
+    return SIZE_MAX;
+}
 
 int main(int argc, char *argv[])
 {
-    auto gestureProxy = sdbus::createProxy(GESTURE_DESTINATION, GESTURE_OBJECTPATH);
-    auto buttonProxy  = sdbus::createProxy(BUTTON_DESTINATION, BUTTON_OBJECTPATH);
+    std::vector<std::unique_ptr<sdbus::IProxy>> dbusProxies;
 
     SettingsLib settings{"/etc"};
 
@@ -29,20 +27,26 @@ int main(int argc, char *argv[])
 
 
     for (std::string section: settings.getSections()){
+        std::string objectPath = settings.getValue(section, "objectPath");
+        size_t proxyIndex = findProxyInVector(dbusProxies, objectPath);
+
+        if (proxyIndex == SIZE_MAX){
+            std::string destination = settings.getValue(section, "destination");
+            auto dbusProxy = sdbus::createProxy(destination, objectPath);
+            dbusProxies.push_back(std::move(dbusProxy));
+            proxyIndex = dbusProxies.size() - 1;
+        }
+
         std::string interface = settings.getValue(section, "interface");
         std::string signalName = settings.getValue(section, "signalName");
-        std::string cmd = settings.getValue(section, "cmd");
 
-        if (interface.find("button") != std::string::npos)
-            buttonProxy->registerSignalHandler(interface, signalName, onSignalArrived);
-        else
-            gestureProxy->registerSignalHandler(interface, signalName, onSignalArrived);
+        dbusProxies.at(proxyIndex)->registerSignalHandler(interface, signalName, onSignalArrived);
 
         LOG("Registered interface {}, signalName {}", interface, signalName);
     }
 
-    gestureProxy->finishRegistration();
-    buttonProxy->finishRegistration();
+    for (auto it = dbusProxies.begin(); it != dbusProxies.end(); ++it)
+        it->get()->finishRegistration();
 
     for (;;){
         std::this_thread::sleep_for(std::chrono::milliseconds(100000));
