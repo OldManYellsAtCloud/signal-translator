@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     SettingsLib settings{"/etc"};
 
     CommandExecutor ce(&settings);
-    auto onSignalArrived = [&](sdbus::Signal& s){ce.runCommand(s);};
+    auto onSignalArrived = [&](sdbus::Signal s){ce.runCommand(s);};
 
 
     for (std::string section: settings.getSections()){
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
         if (proxyIndex == SIZE_MAX){
             std::string destination = settings.getValue(section, "destination");
-            auto dbusProxy = sdbus::createProxy(destination, objectPath);
+            auto dbusProxy = sdbus::createProxy(sdbus::ServiceName{destination}, sdbus::ObjectPath{objectPath});
             dbusProxies.push_back(std::move(dbusProxy));
             proxyIndex = dbusProxies.size() - 1;
         }
@@ -40,13 +40,10 @@ int main(int argc, char *argv[])
         std::string interface = settings.getValue(section, "interface");
         std::string signalName = settings.getValue(section, "signalName");
 
-        dbusProxies.at(proxyIndex)->registerSignalHandler(interface, signalName, onSignalArrived);
+        dbusProxies.at(proxyIndex)->registerSignalHandler(sdbus::InterfaceName{interface}, sdbus::SignalName{signalName}, onSignalArrived);
 
         LOG("Registered interface {}, signalName {}", interface, signalName);
     }
-
-    for (auto it = dbusProxies.begin(); it != dbusProxies.end(); ++it)
-        it->get()->finishRegistration();
 
     for (;;){
         std::this_thread::sleep_for(std::chrono::milliseconds(100000));
