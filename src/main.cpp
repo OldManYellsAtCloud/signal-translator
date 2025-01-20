@@ -1,5 +1,5 @@
 #include <sdbus-c++/sdbus-c++.h>
-#include <loglibrary.h>
+#include <loglib/loglib.h>
 #include <settingslib.h>
 
 #include <thread>
@@ -18,6 +18,9 @@ size_t findProxyInVector(const std::vector<std::unique_ptr<sdbus::IProxy>>& inpu
 
 int main(int argc, char *argv[])
 {
+    loglib::logger().setName("signal-translator");
+    loglib::logger().registerLogger(logging::LOGGER_FILE);
+
     std::vector<std::unique_ptr<sdbus::IProxy>> dbusProxies;
 
     SettingsLib settings{"/etc"};
@@ -42,7 +45,7 @@ int main(int argc, char *argv[])
 
         dbusProxies.at(proxyIndex)->registerSignalHandler(sdbus::InterfaceName{interface}, sdbus::SignalName{signalName}, onSignalArrived);
 
-        LOG("Registered interface {}, signalName {}", interface, signalName);
+        LOG_INFO_F("Registered interface {}, signalName {}", interface, signalName);
     }
 
     for (;;){

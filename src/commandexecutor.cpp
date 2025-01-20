@@ -1,4 +1,4 @@
-#include <loglibrary.h>
+#include <loglib/loglib.h>
 #include "commandexecutor.h"
 
 
@@ -22,11 +22,11 @@ void CommandExecutor::runCommand(sdbus::Signal &signal)
 
         std::string cmd = _settings->getValue(section, "cmd");
 
-        LOG("Running command: {}", cmd);
+        LOG_INFO_F("Running command: {}", cmd);
 
         FILE *cmd_output = popen(cmd.c_str(), "r");
         if (!cmd_output){
-            ERROR("Could not execute command: {}, errno: {}", cmd, errno);
+            LOG_ERROR_F("Could not execute command: {}, errno: {}", cmd, errno);
             continue;
         }
 
